@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Packaging Inventory Simple V1.0</title>
+  <style>
+    :root{--ink:#17233b;--muted:#718096;--line:#e6ebf2;--bg:#f3f6fc;--blue:#4263eb;--cyan:#0ca6c9;--green:#12a875;--orange:#f59e0b;--red:#e5484d;--purple:#8657d5}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,"Noto Sans Thai",sans-serif}
+    header{background:linear-gradient(115deg,#253b80,#4263eb 58%,#11a7c7);color:#fff;padding:22px 28px;box-shadow:0 5px 18px #1e3a8a25}
+    .head{max-width:1400px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand h1{font-size:22px;margin:0 0 5px}.brand p{margin:0;color:#e1eaff;font-size:13px}
+    .tag{background:#ffffff24;border:1px solid #ffffff55;border-radius:30px;padding:8px 13px;font-size:12px}
+    .layout{max-width:1400px;margin:22px auto;padding:0 20px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:20px}
+    nav{background:#fff;border:1px solid var(--line);border-radius:17px;padding:12px;height:max-content;position:sticky;top:15px;box-shadow:0 5px 20px #253b8008}
+    nav button{width:100%;border:0;background:transparent;text-align:left;padding:12px 13px;border-radius:11px;margin:2px 0;color:#526078;font-size:14px;cursor:pointer}
+    nav button.active,nav button:hover{background:#edf2ff;color:#3154d9;font-weight:700}
+    main{min-width:0}.page{display:none}.page.active{display:block}.page-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 17px}.page-title h2{margin:0;font-size:22px}.sub{font-size:13px;color:var(--muted);margin-top:5px}
+    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:17px}
+    .metric{background:#fff;border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 6px 20px #263b8008;position:relative;overflow:hidden}
+    .metric:after{content:"";position:absolute;width:85px;height:85px;border-radius:50%;right:-25px;top:-25px;background:var(--tint)}
+    .metric .label{color:var(--muted);font-size:13px}.metric .value{font-size:27px;font-weight:800;margin-top:8px}.metric .hint{font-size:12px;color:var(--muted);margin-top:5px}
+    .metric.blue{--tint:#e7edff}.metric.cyan{--tint:#e1f8fc}.metric.green{--tint:#e1f8ef}.metric.orange{--tint:#fff2d8}.metric.red{--tint:#ffe7e7}.metric.purple{--tint:#f0e9ff}
+    .panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 6px 20px #263b8008}
+    .panel h3{font-size:16px;margin:0 0 14px}.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}
+    label{font-size:13px;font-weight:700;color:#44516a}input,select,textarea{width:100%;padding:11px 12px;border:1px solid #d9e1ed;border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:14px;outline:none}
+    input:focus,select:focus,textarea:focus{border-color:#6480f1;box-shadow:0 0 0 3px #4263eb18}input[readonly]{background:#f5f7fb;color:#667085}textarea{min-height:78px;resize:vertical}
+    .btn{border:0;border-radius:10px;padding:11px 16px;font-weight:700;cursor:pointer;font-size:13px;background:var(--blue);color:#fff}.btn:hover{filter:brightness(.96)}.btn:disabled{opacity:.55;cursor:wait}.btn.secondary{background:#eef2ff;color:#3154d9}.btn.green{background:var(--green)}.btn.orange{background:var(--orange)}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:680px;font-size:13px}th,td{padding:11px 12px;text-align:left;border-bottom:1px solid #edf0f5;white-space:nowrap}th{background:#f7f9fd;color:#58657b;font-weight:700}tr:last-child td{border-bottom:0}.empty{text-align:center;color:#8792a5;padding:24px}
+    .pill{display:inline-block;padding:5px 9px;border-radius:20px;font-size:11px;font-weight:700}.receive{background:#e1f8ef;color:#087b53}.issue{background:#ffe9e9;color:#c53338}.hold{background:#fff2d8;color:#9b6500}.normal{background:#e5f6ed;color:#13845b}.low{background:#ffe9e9;color:#c53338}
+    .notice{display:none;padding:12px 14px;border-radius:10px;margin-bottom:14px;font-size:13px}.notice.ok{display:block;background:#e7f8ef;color:#087b53}.notice.err{display:block;background:#fff0f0;color:#bd2d35}
+    .stockline{display:flex;align-items:center;justify-content:space-between;gap:10px}.muted{color:var(--muted)}.small{font-size:12px}.right{text-align:right}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}nav{position:static;display:grid;grid-template-columns:repeat(4,1fr);gap:3px}nav button{text-align:center;padding:10px 5px;font-size:12px}.cards{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){header{padding:17px}.head{align-items:flex-start;flex-direction:column}.layout{padding:0 12px;margin:14px auto}nav{grid-template-columns:repeat(2,1fr)}.cards,.two,.form-grid{grid-template-columns:1fr}.page-title h2{font-size:19px}.metric .value{font-size:23px}.panel{padding:14px}}
+  </style>
+</head>
+<body>
+<header><div class="head"><div class="brand"><h1>📦 Packaging Inventory</h1><p>ระบบควบคุมคลังบรรจุภัณฑ์ · Simple V1.0</p></div><div class="tag">● ระบบจัดการสต็อก</div></div></header>
+<div class="layout">
+<nav id="nav">
+  <button class="active" data-page="dashboard">▦ Dashboard</button>
+  <button data-page="products">▤ ทะเบียนสินค้า</button>
+  <button data-page="receive">＋ รับเข้าสินค้า</button>
+  <button data-page="issue">− เบิกจ่ายสินค้า</button>
+  <button data-page="returns">↩ รับคืนสินค้า</button>
+  <button data-page="daily">▣ เบิกประจำวัน</button>
+  <button data-page="reports">▥ รายงาน</button>
+</nav>
+<main>
+  <div id="notice" class="notice"></div>
+  <section id="page-dashboard" class="page active">
+    <div class="page-title"><div><h2>Dashboard ภาพรวมคลัง</h2><div class="sub">สรุปสถานะสินค้าคงคลังและความเคลื่อนไหวล่าสุด</div></div><button class="btn secondary" onclick="loadAll()">⟳ รีเฟรช</button></div>
+    <div id="metrics" class="cards"></div>
+    <div class="two">
+      <div class="panel"><h3>📉 สินค้าคงเหลือ / สถานะขั้นต่ำ</h3><div class="table-wrap"><table><thead><tr><th>รหัส</th><th>สินค้า</th><th>คงเหลือ</th><th>สถานะ</th></tr></thead><tbody id="dashStock"></tbody></table></div></div>
+      <div class="panel"><h3>🕘 รายการเบิกล่าสุด</h3><div class="table-wrap"><table><thead><tr><th>วันที่</th><th>สินค้า</th><th>จำนวน</th><th>อ้างอิง</th></tr></thead><tbody id="dashIssues"></tbody></table></div></div>
+    </div>
+    <div class="panel"><h3>🔄 ความเคลื่อนไหวล่าสุด</h3><div class="table-wrap"><table><thead><tr><th>วันที่</th><th>ประเภท</th><th>สินค้า</th><th>จำนวน</th><th>ผู้ทำรายการ</th><th>รายละเอียด</th></tr></thead><tbody id="dashMoves"></tbody></table></div></div>
+  </section>
+
+  <section id="page-products" class="page">
+    <div class="page-title"><div><h2>ทะเบียนสินค้า</h2><div class="sub">เพิ่มและตรวจสอบรายการบรรจุภัณฑ์</div></div></div>
+    <div class="panel"><h3>＋ เพิ่มสินค้าใหม่</h3><form id="productForm"><div class="form-grid">
+      <div class="field"><label>รหัสสินค้า *</label><input name="ProductCode" required></div>
+      <div class="field"><label>ชื่อสินค้า *</label><input name="ProductName" required></div>
+      <div class="field"><label>หมวดหมู่ *</label><select name="Category" id="categorySelect" required></select></div>
+      <div class="field"><label>หน่วยนับ *</label><input name="Unit" placeholder="เช่น ใบ, ชิ้น, ม้วน" required></div>
+      <div class="field"><label>ยอดขั้นต่ำ</label><input name="MinimumStock" type="number" min="0" value="0"></div>
+      <div class="field"><label>ตำแหน่งจัดเก็บ</label><input name="Location" placeholder="เช่น A-01"></div>
+      <div class="field full"><label>รายละเอียดสินค้า</label><textarea name="Description"></textarea></div>
+    </div><div class="actions"><button class="btn" type="submit">บันทึกสินค้า</button></div></form></div>
+    <div class="panel"><h3>รายการสินค้าในระบบ</h3><div class="table-wrap"><table><thead><tr><th>รหัส</th><th>ชื่อสินค้า</th><th>หมวดหมู่</th><th>หน่วย</th><th>คงเหลือพร้อมใช้</th><th>ขั้นต่ำ</th><th>สถานะ</th></tr></thead><tbody id="productsTable"></tbody></table></div></div>
+  </section>
+
+  <section id="page-receive" class="page">
+    <div class="page-title"><div><h2>รับเข้าสินค้า</h2><div class="sub">บันทึกการรับเข้าและเลขที่เอกสารอ้างอิง</div></div></div>
+    <div class="panel"><form id="receiveForm"><div class="form-grid">
+      <div class="field"><label>วันที่รับเข้า *</label><input name="Date" type="date" required></div>
+      <div class="field"><label>เลขที่อ้างอิง</label><input name="Reference" placeholder="เลขที่ใบส่งของ / PO"></div>
+      <div class="field"><label>รหัสสินค้า *</label><input name="ProductCode" class="product-code" list="productCodes" autocomplete="off" required placeholder="กรอกรหัสสินค้า"></div>
+      <div class="field"><label>ชื่อสินค้า</label><input name="ProductName" class="product-name" readonly placeholder="ระบบเติมชื่อสินค้าอัตโนมัติ"></div>
+      <div class="field"><label>จำนวนรับเข้า *</label><input name="Quantity" type="number" min="0.001" step="any" required></div>
+      <div class="field"><label>ผู้รับสินค้า *</label><input name="ReceivedBy" required></div>
+      <div class="field full"><label>หมายเหตุ</label><textarea name="Note"></textarea></div>
+    </div><div class="actions"><button class="btn green" type="submit">＋ บันทึกรับเข้า</button></div></form></div>
+  </section>
+
+  <section id="page-issue" class="page">
+    <div class="page-title"><div><h2>เบิกจ่ายสินค้า</h2><div class="sub">ระบบตรวจสอบยอดพร้อมใช้ก่อนบันทึกทุกครั้ง</div></div></div>
+    <div class="panel"><form id="issueForm"><div class="form-grid">
+      <div class="field"><label>วันที่เบิก *</label><input name="Date" type="date" required></div>
+      <div class="field"><label>เลขที่อ้างอิง *</label><input name="Reference" required placeholder="เลขที่ใบเบิก / ใบสั่งงาน"></div>
+      <div class="field"><label>รหัสสินค้า *</label><input name="ProductCode" class="product-code" list="productCodes" autocomplete="off" required placeholder="กรอกรหัสสินค้า"></div>
+      <div class="field"><label>ชื่อสินค้า</label><input name="ProductName" class="product-name" readonly placeholder="ระบบเติมชื่อสินค้าอัตโนมัติ"></div>
+      <div class="field"><label>จำนวนเบิก *</label><input name="Quantity" type="number" min="0.001" step="any" required></div>
+      <div class="field"><label>ผู้เบิก *</label><input name="IssuedBy" required></div>
+      <div class="field"><label>แผนก</label><input name="Department"></div>
+      <div class="field"><label>วัตถุประสงค์</label><input name="Purpose"></div>
+    </div><div id="issueBalance" class="sub" style="margin-top:12px">กรอกรหัสสินค้าเพื่อดูยอดพร้อมใช้</div><div class="actions"><button class="btn orange" type="submit">− บันทึกเบิกจ่าย</button></div></form></div>
+  </section>
+
+  <section id="page-returns" class="page">
+    <div class="page-title"><div><h2>รับคืนสินค้า</h2><div class="sub">สินค้าคืนจะพักแยก ไม่บวกเข้าสต็อกพร้อมใช้โดยอัตโนมัติ</div></div></div>
+    <div class="panel"><form id="returnForm"><div class="form-grid">
+      <div class="field"><label>วันที่คืน *</label><input name="Date" type="date" required></div>
+      <div class="field"><label>รหัสสินค้า *</label><input name="ProductCode" class="product-code" list="productCodes" autocomplete="off" required></div>
+      <div class="field"><label>ชื่อสินค้า</label><input name="ProductName" class="product-name" readonly></div>
+      <div class="field"><label>จำนวนคืน *</label><input name="Quantity" type="number" min="0.001" step="any" required></div>
+      <div class="field"><label>ผู้คืน *</label><input name="ReturnedBy" required></div>
+      <div class="field"><label>สภาพสินค้า</label><select name="Condition"><option>รอตรวจสอบ</option><option>สภาพดี</option><option>ชำรุด</option><option>ไม่สมบูรณ์</option></select></div>
+      <div class="field full"><label>เหตุผลการคืน</label><textarea name="Reason"></textarea></div>
+    </div><div class="actions"><button class="btn" type="submit">↩ บันทึกรับคืน</button></div></form></div>
+  </section>
+
+  <section id="page-daily" class="page">
+    <div class="page-title"><div><h2>รายการเบิกประจำวัน</h2><div class="sub">ค้นหารายการเบิกตามวันที่และส่งออก CSV เปิดด้วย Excel ได้</div></div></div>
+    <div class="panel"><div class="form-grid"><div class="field"><label>เลือกวันที่</label><input id="dailyDate" type="date"></div><div class="field" style="justify-content:end"><button class="btn" onclick="loadDaily()">ค้นหารายการ</button></div></div><div class="actions"><button class="btn secondary" onclick="downloadDaily()">ดาวน์โหลด CSV / Excel</button></div></div>
+    <div class="panel"><div class="table-wrap"><table><thead><tr><th>วันที่</th><th>เลขที่เบิก</th><th>เลขที่อ้างอิง</th><th>รหัส</th><th>ชื่อสินค้า</th><th>จำนวน</th><th>ผู้เบิก</th><th>แผนก</th><th>วัตถุประสงค์</th></tr></thead><tbody id="dailyTable"></tbody></table></div></div>
+  </section>
+
+  <section id="page-reports" class="page">
+    <div class="page-title"><div><h2>รายงานความเคลื่อนไหว</h2><div class="sub">ตรวจสอบรายการรับเข้า เบิกจ่าย และรับคืน</div></div><button class="btn secondary" onclick="loadReports()">⟳ โหลดรายงาน</button></div>
+    <div class="panel"><h3>＋ รายการรับเข้า</h3><div class="table-wrap"><table><thead><tr><th>วันที่</th><th>เลขที่รับเข้า</th><th>อ้างอิง</th><th>รหัส</th><th>สินค้า</th><th>จำนวน</th><th>ผู้รับ</th></tr></thead><tbody id="reportReceiving"></tbody></table></div></div>
+    <div class="panel"><h3>− รายการเบิกจ่าย</h3><div class="table-wrap"><table><thead><tr><th>วันที่</th><th>เลขที่เบิก</th><th>อ้างอิง</th><th>รหัส</th><th>สินค้า</th><th>จำนวน</th><th>ผู้เบิก</th><th>แผนก</th></tr></thead><tbody id="reportIssues"></tbody></table></div></div>
+    <div class="panel"><h3>↩ รายการรับคืน</h3><div class="table-wrap"><table><thead><tr><th>วันที่</th><th>เลขที่คืน</th><th>รหัส</th><th>สินค้า</th><th>จำนวน</th><th>ผู้คืน</th><th>สถานะ</th></tr></thead><tbody id="reportReturns"></tbody></table></div></div>
+    <div class="panel"><h3>🔄 ความเคลื่อนไหวทั้งหมด</h3><div class="table-wrap"><table><thead><tr><th>วันที่</th><th>ประเภท</th><th>เอกสาร</th><th>รหัส</th><th>สินค้า</th><th>จำนวน</th><th>ผู้ทำรายการ</th><th>หมายเหตุ</th></tr></thead><tbody id="reportMoves"></tbody></table></div></div>
+  </section>
+</main>
+</div>
+<datalist id="productCodes"></datalist>
+<script>
+let APP={products:[],categories:[],balances:[],dashboard:{},movements:[],recentIssues:[]};
+const $=id=>document.getElementById(id);
+function showNotice(message,type='ok'){const n=$('notice');n.textContent=message;n.className='notice '+(type==='err'?'err':'ok');window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>{n.className='notice';},6500);}
+function call(fn,arg,success,error){const runner=google.script.run.withSuccessHandler(success||(()=>{})).withFailureHandler(e=>(error||((x)=>showNotice(x.message||String(x),'err')))(e));if(arg===undefined)runner[fn]();else runner[fn](arg);}
+function formData(form){return Object.fromEntries(new FormData(form).entries());}
+function localToday(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
+function setDates(){document.querySelectorAll('input[type=date]').forEach(x=>{if(!x.value)x.value=localToday();});}
+function fmt(v){if(v===null||v===undefined||v==='')return '-';return String(v).replace('T',' ').slice(0,19);}
+function nfmt(v){return Number(v||0).toLocaleString('th-TH',{maximumFractionDigits:3});}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function emptyRow(cols,msg='ไม่มีข้อมูล'){return `<tr><td class="empty" colspan="${cols}">${msg}</td></tr>`;}
+function submitForm(form,fn,after){form.addEventListener('submit',e=>{e.preventDefault();const btn=form.querySelector('[type=submit]');if(btn.disabled)return;btn.disabled=true;const data=formData(form);call(fn,data,res=>{btn.disabled=false;showNotice((res&&res.message)||'บันทึกสำเร็จ');form.reset();setDates();if(after)after();loadAll();},err=>{btn.disabled=false;showNotice(err.message||String(err),'err');});});}
+function go(page){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$('page-'+page).classList.add('active');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));if(page==='daily')loadDaily();if(page==='reports')loadReports();}
+$('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b)go(b.dataset.page);});
+function loadAll(){call('getInitialData',undefined,data=>{APP=data||APP;renderAll();},e=>showNotice(e.message||String(e),'err'));}
+function renderAll(){renderMetrics();renderProducts();renderDashStock();renderDashIssues();renderMoves();fillCategories();fillProductCodes();}
+function renderMetrics(){const d=APP.dashboard||{},cards=[['จำนวนสินค้า',d.productCount,'รายการ','blue','▤'],['คงเหลือพร้อมใช้',d.available,'หน่วย','cyan','▣'],['รับเข้าวันนี้',d.receivedToday,'หน่วย','green','＋'],['เบิกวันนี้',d.issuedToday,'หน่วย','orange','−'],['สินค้าใกล้หมด',d.lowStock,'รายการ','red','!'],['สินค้ารอจัดการคืน',d.returnQty,'หน่วย','purple','↩']];$('metrics').innerHTML=cards.map(c=>`<div class="metric ${c[3]}"><div class="label">${c[4]} ${c[0]}</div><div class="value">${nfmt(c[1])}</div><div class="hint">${c[2]}</div></div>`).join('');}
+function renderProducts(){const a=APP.products||[];$('productsTable').innerHTML=a.length?a.map(p=>`<tr><td><b>${esc(p.ProductCode)}</b></td><td>${esc(p.ProductName)}</td><td>${esc(p.Category)}</td><td>${esc(p.Unit)}</td><td><b>${nfmt(p.available)}</b></td><td>${nfmt(p.MinimumStock)}</td><td><span class="pill ${Number(p.available)<=Number(p.MinimumStock||0)?'low':'normal'}">${Number(p.available)<=Number(p.MinimumStock||0)?'ต่ำกว่าขั้นต่ำ':'ปกติ'}</span></td></tr>`).join(''):emptyRow(7);}
+function renderDashStock(){const a=APP.products||[];$('dashStock').innerHTML=a.length?a.slice(0,12).map(p=>`<tr><td>${esc(p.ProductCode)}</td><td>${esc(p.ProductName)}</td><td><b>${nfmt(p.available)}</b> ${esc(p.Unit)}</td><td><span class="pill ${Number(p.available)<=Number(p.MinimumStock||0)?'low':'normal'}">${Number(p.available)<=Number(p.MinimumStock||0)?'ใกล้หมด':'ปกติ'}</span></td></tr>`).join(''):emptyRow(4);}
+function renderDashIssues(){const a=APP.recentIssues||[];$('dashIssues').innerHTML=a.length?a.map(x=>`<tr><td>${fmt(x.Date).slice(0,10)}</td><td>${esc(x.ProductName)}</td><td><span class="pill issue">− ${nfmt(x.Quantity)} ${esc(x.Unit)}</span></td><td>${esc(x.Reference||'-')}</td></tr>`).join(''):emptyRow(4);}
+function typePill(t){return String(t).toUpperCase()==='RECEIVE'?'<span class="pill receive">＋ รับเข้า</span>':'<span class="pill issue">− เบิกออก</span>';}
+function renderMoves(){const a=APP.movements||[];$('dashMoves').innerHTML=a.length?a.map(x=>`<tr><td>${fmt(x.Date).slice(0,10)}</td><td>${typePill(x.Type)}</td><td>${esc(x.ProductCode)} · ${esc(x.ProductName)}</td><td>${String(x.Type).toUpperCase()==='RECEIVE'?'+':'−'} ${nfmt(x.Quantity)} ${esc(x.Unit)}</td><td>${esc(x.Person)}</td><td>${esc(x.Note||x.DocumentID||'-')}</td></tr>`).join(''):emptyRow(6);}
+function fillCategories(){const s=$('categorySelect');s.innerHTML='<option value="">เลือกหมวดหมู่</option>'+(APP.categories||[]).map(c=>`<option value="${esc(c.CategoryName)}">${esc(c.CategoryName)}</option>`).join('');}
+function fillProductCodes(){const d=$('productCodes');d.innerHTML=(APP.products||[]).map(p=>`<option value="${esc(p.ProductCode)}">${esc(p.ProductName)}</option>`).join('');}
+function productByCode(c){return (APP.products||[]).find(p=>String(p.ProductCode).trim().toLowerCase()===String(c||'').trim().toLowerCase());}
+function bindProductInputs(){document.querySelectorAll('.product-code').forEach(input=>{input.addEventListener('input',()=>{const p=productByCode(input.value),form=input.closest('form'),name=form.querySelector('.product-name');name.value=p?p.ProductName:'';if(form.id==='issueForm')$('issueBalance').textContent=p?`ยอดพร้อมใช้ปัจจุบัน: ${nfmt(p.available)} ${p.Unit}`:'ไม่พบรหัสสินค้าในทะเบียน';});input.addEventListener('change',()=>{const p=productByCode(input.value);if(p)input.value=p.ProductCode;});});}
+function loadDaily(){const d=$('dailyDate').value||localToday();call('getDailyIssues',d,a=>{$('dailyTable').innerHTML=a.length?a.map(x=>`<tr><td>${fmt(x.Date).slice(0,10)}</td><td>${esc(x.IssueID)}</td><td>${esc(x.Reference||'-')}</td><td>${esc(x.ProductCode)}</td><td>${esc(x.ProductName)}</td><td><span class="pill issue">− ${nfmt(x.Quantity)} ${esc(x.Unit)}</span></td><td>${esc(x.IssuedBy)}</td><td>${esc(x.Department||'-')}</td><td>${esc(x.Purpose||'-')}</td></tr>`).join(''):emptyRow(9);},e=>showNotice(e.message||String(e),'err'));}
+function downloadDaily(){const d=$('dailyDate').value||localToday();call('exportDailyIssuesCsv',d,r=>{const blob=new Blob([r.content],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=r.filename;a.click();URL.revokeObjectURL(url);},e=>showNotice(e.message||String(e),'err'));}
+function loadReports(){call('getReportData',undefined,r=>{const rec=r.receiving||[],iss=r.issues||[],ret=r.returns||[],mov=r.movements||[];$('reportReceiving').innerHTML=rec.length?rec.slice().reverse().map(x=>`<tr><td>${fmt(x.Date).slice(0,10)}</td><td>${esc(x.ReceiveID)}</td><td>${esc(x.Reference||'-')}</td><td>${esc(x.ProductCode)}</td><td>${esc(x.ProductName)}</td><td><span class="pill receive">＋ ${nfmt(x.Quantity)} ${esc(x.Unit)}</span></td><td>${esc(x.ReceivedBy)}</td></tr>`).join(''):emptyRow(7);$('reportIssues').innerHTML=iss.length?iss.slice().reverse().map(x=>`<tr><td>${fmt(x.Date).slice(0,10)}</td><td>${esc(x.IssueID)}</td><td>${esc(x.Reference||'-')}</td><td>${esc(x.ProductCode)}</td><td>${esc(x.ProductName)}</td><td><span class="pill issue">− ${nfmt(x.Quantity)} ${esc(x.Unit)}</span></td><td>${esc(x.IssuedBy)}</td><td>${esc(x.Department||'-')}</td></tr>`).join(''):emptyRow(8);$('reportReturns').innerHTML=ret.length?ret.slice().reverse().map(x=>`<tr><td>${fmt(x.Date).slice(0,10)}</td><td>${esc(x.ReturnID)}</td><td>${esc(x.ProductCode)}</td><td>${esc(x.ProductName)}</td><td><span class="pill hold">${nfmt(x.Quantity)} ${esc(x.Unit)}</span></td><td>${esc(x.ReturnedBy)}</td><td>${esc(x.Status)}</td></tr>`).join(''):emptyRow(7);$('reportMoves').innerHTML=mov.length?mov.slice().reverse().map(x=>`<tr><td>${fmt(x.Date).slice(0,10)}</td><td>${typePill(x.Type)}</td><td>${esc(x.DocumentID)}</td><td>${esc(x.ProductCode)}</td><td>${esc(x.ProductName)}</td><td>${String(x.Type).toUpperCase()==='RECEIVE'?'+':'−'} ${nfmt(x.Quantity)} ${esc(x.Unit)}</td><td>${esc(x.Person)}</td><td>${esc(x.Note||'-')}</td></tr>`).join(''):emptyRow(8);},e=>showNotice(e.message||String(e),'err'));}
+$('productForm').addEventListener('submit',e=>{e.preventDefault();const f=e.currentTarget,b=f.querySelector('[type=submit]');b.disabled=true;call('addProduct',formData(f),r=>{b.disabled=false;showNotice(r.message);f.reset();loadAll();},x=>{b.disabled=false;showNotice(x.message||String(x),'err');});});
+submitForm($('receiveForm'),'receiveStock');
+submitForm($('issueForm'),'issueStock',loadDaily);
+submitForm($('returnForm'),'receiveReturn');
+bindProductInputs();setDates();loadAll();
+</script>
+</body>
+</html>
